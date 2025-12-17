@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 
 const Index = () => {
   const [showQR, setShowQR] = useState(false);
-  const videoUrl = `${window.location.origin}/video?code=secret123`;
+  const videoUrl = 'https://your-domain.com/video?code=secret123';
 
   return (
     <div className="min-h-screen bg-white">
