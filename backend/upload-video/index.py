@@ -29,18 +29,18 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     if method == 'POST':
         try:
             body_data = json.loads(event.get('body', '{}'))
-            video_base64 = body_data.get('video', '')
-            filename = body_data.get('filename', 'video.mp4')
+            media_base64 = body_data.get('video', '')
+            filename = body_data.get('filename', 'media.mp4')
             
-            if not video_base64:
+            if not media_base64:
                 return {
                     'statusCode': 400,
                     'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                    'body': json.dumps({'error': 'No video data provided'}),
+                    'body': json.dumps({'error': 'No media data provided'}),
                     'isBase64Encoded': False
                 }
             
-            video_bytes = base64.b64decode(video_base64)
+            media_bytes = base64.b64decode(media_base64)
             
             s3 = boto3.client('s3',
                 endpoint_url='https://bucket.poehali.dev',
@@ -48,13 +48,21 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY'],
             )
             
-            file_key = f'videos/{filename}'
+            file_ext = filename.split('.')[-1].lower()
+            if file_ext in ['jpg', 'jpeg', 'png', 'gif', 'webp']:
+                content_type = f'image/{file_ext if file_ext != "jpg" else "jpeg"}'
+                media_type = 'image'
+            else:
+                content_type = 'video/mp4'
+                media_type = 'video'
+            
+            file_key = 'media/current'
             
             s3.put_object(
                 Bucket='files',
                 Key=file_key,
-                Body=video_bytes,
-                ContentType='video/mp4'
+                Body=media_bytes,
+                ContentType=content_type
             )
             
             cdn_url = f"https://cdn.poehali.dev/projects/{os.environ['AWS_ACCESS_KEY_ID']}/bucket/{file_key}"
@@ -62,7 +70,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             return {
                 'statusCode': 200,
                 'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                'body': json.dumps({'url': cdn_url, 'filename': filename}),
+                'body': json.dumps({'url': cdn_url, 'filename': filename, 'type': media_type}),
                 'isBase64Encoded': False
             }
             
@@ -82,23 +90,26 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY'],
             )
             
-            response = s3.list_objects_v2(Bucket='files', Prefix='videos/')
+            file_key = 'media/current'
             
-            if 'Contents' in response and len(response['Contents']) > 0:
-                latest_file = response['Contents'][0]['Key']
-                cdn_url = f"https://cdn.poehali.dev/projects/{os.environ['AWS_ACCESS_KEY_ID']}/bucket/{latest_file}"
+            try:
+                head_response = s3.head_object(Bucket='files', Key=file_key)
+                content_type = head_response.get('ContentType', 'video/mp4')
+                media_type = 'image' if content_type.startswith('image/') else 'video'
+                
+                cdn_url = f"https://cdn.poehali.dev/projects/{os.environ['AWS_ACCESS_KEY_ID']}/bucket/{file_key}"
                 
                 return {
                     'statusCode': 200,
                     'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                    'body': json.dumps({'url': cdn_url}),
+                    'body': json.dumps({'url': cdn_url, 'type': media_type}),
                     'isBase64Encoded': False
                 }
-            else:
+            except:
                 return {
                     'statusCode': 404,
                     'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                    'body': json.dumps({'url': None}),
+                    'body': json.dumps({'url': None, 'type': None}),
                     'isBase64Encoded': False
                 }
                 

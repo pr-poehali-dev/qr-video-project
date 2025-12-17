@@ -8,7 +8,8 @@ const Video = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isAuthorized, setIsAuthorized] = useState(false);
-  const [videoUrl, setVideoUrl] = useState<string | null>(null);
+  const [mediaUrl, setMediaUrl] = useState<string | null>(null);
+  const [mediaType, setMediaType] = useState<'video' | 'image' | null>(null);
   const [loading, setLoading] = useState(true);
   const code = searchParams.get('code');
 
@@ -22,11 +23,12 @@ const Video = () => {
           const data = await response.json();
           
           if (data.url) {
-            setVideoUrl(data.url);
+            setMediaUrl(data.url);
+            setMediaType(data.type || 'video');
           } else {
             toast({
-              title: 'Видео не найдено',
-              description: 'Сначала загрузите видео через /upload',
+              title: 'Контент не найден',
+              description: 'Сначала загрузите видео или фото',
               variant: 'destructive',
             });
           }
@@ -61,7 +63,7 @@ const Video = () => {
     <div className="min-h-screen bg-white flex flex-col">
       <header className="border-b border-black/10 py-6 px-4">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <h1 className="text-xl font-medium">Эксклюзивное видео</h1>
+          <h1 className="text-xl font-medium">Эксклюзивный контент</h1>
           <button
             onClick={() => navigate('/')}
             className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
@@ -77,39 +79,50 @@ const Video = () => {
           {loading ? (
             <div className="text-center py-20">
               <Icon name="Loader2" size={48} className="mx-auto mb-4 text-black/20 animate-spin" />
-              <p className="text-muted-foreground">Загрузка видео...</p>
+              <p className="text-muted-foreground">Загрузка...</p>
             </div>
-          ) : videoUrl ? (
+          ) : mediaUrl ? (
             <>
-              <div className="aspect-video bg-black rounded-lg overflow-hidden shadow-2xl">
-                <video
-                  controls
-                  autoPlay
-                  className="w-full h-full"
-                >
-                  <source
-                    src={videoUrl}
-                    type="video/mp4"
+              <div className="rounded-lg overflow-hidden shadow-2xl bg-black">
+                {mediaType === 'video' ? (
+                  <video
+                    controls
+                    autoPlay
+                    className="w-full h-auto max-h-[80vh]"
+                  >
+                    <source src={mediaUrl} type="video/mp4" />
+                    Ваш браузер не поддерживает видео.
+                  </video>
+                ) : (
+                  <img
+                    src={mediaUrl}
+                    alt="Эксклюзивное изображение"
+                    className="w-full h-auto"
                   />
-                  Ваш браузер не поддерживает видео.
-                </video>
+                )}
               </div>
               
-              <div className="mt-8 text-center">
+              <div className="mt-8 text-center space-y-4">
                 <p className="text-muted-foreground text-sm">
-                  Это видео доступно только по QR-коду
+                  Этот контент доступен только по QR-коду
                 </p>
+                <button
+                  onClick={() => navigate('/upload')}
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Загрузить новый файл
+                </button>
               </div>
             </>
           ) : (
             <div className="text-center py-20">
-              <Icon name="Video" size={48} className="mx-auto mb-4 text-black/20" />
-              <p className="text-muted-foreground mb-4">Видео ещё не загружено</p>
+              <Icon name="FileVideo" size={48} className="mx-auto mb-4 text-black/20" />
+              <p className="text-muted-foreground mb-4">Контент ещё не загружен</p>
               <button
                 onClick={() => navigate('/upload')}
                 className="text-sm text-foreground hover:underline"
               >
-                Загрузить видео
+                Загрузить файл
               </button>
             </div>
           )}

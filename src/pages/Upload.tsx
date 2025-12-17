@@ -15,10 +15,13 @@ const Upload = () => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (!file.type.startsWith('video/')) {
+    const isVideo = file.type.startsWith('video/');
+    const isImage = file.type.startsWith('image/');
+    
+    if (!isVideo && !isImage) {
       toast({
         title: 'Ошибка',
-        description: 'Выберите видео файл',
+        description: 'Выберите видео или изображение',
         variant: 'destructive',
       });
       return;
@@ -60,7 +63,7 @@ const Upload = () => {
           const data = await response.json();
           toast({
             title: 'Успешно!',
-            description: 'Видео загружено',
+            description: data.type === 'image' ? 'Изображение загружено' : 'Видео загружено',
           });
           
           setTimeout(() => {
@@ -75,7 +78,7 @@ const Upload = () => {
     } catch (error) {
       toast({
         title: 'Ошибка',
-        description: 'Не удалось загрузить видео',
+        description: 'Не удалось загрузить файл',
         variant: 'destructive',
       });
       setUploading(false);
@@ -87,7 +90,7 @@ const Upload = () => {
     <div className="min-h-screen bg-white">
       <header className="border-b border-black/10 py-6 px-4">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <h1 className="text-xl font-medium">Загрузка видео</h1>
+          <h1 className="text-xl font-medium">Загрузка медиа</h1>
           <button
             onClick={() => navigate('/')}
             className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
@@ -106,11 +109,11 @@ const Upload = () => {
             </div>
             
             <h2 className="text-3xl font-light">
-              Загрузите своё <span className="font-medium">видео</span>
+              Загрузите <span className="font-medium">видео или фото</span>
             </h2>
             
             <p className="text-muted-foreground">
-              Выберите MP4 файл для загрузки на сервер
+              Новый файл заменит предыдущий. QR-код останется прежним.
             </p>
           </div>
 
@@ -119,7 +122,7 @@ const Upload = () => {
               <input
                 ref={fileInputRef}
                 type="file"
-                accept="video/mp4,video/*"
+                accept="video/*,image/*"
                 onChange={handleFileSelect}
                 className="hidden"
               />
@@ -129,7 +132,7 @@ const Upload = () => {
                 className="px-8 py-6 text-base font-normal rounded-full hover:scale-105 transition-transform"
               >
                 <Icon name="Upload" size={20} className="mr-2" />
-                Выбрать видео
+                Выбрать файл
               </Button>
             </div>
           ) : (
