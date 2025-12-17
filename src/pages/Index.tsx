@@ -28,13 +28,22 @@ const Index = () => {
             </p>
           </div>
 
-          <div className="pt-8">
+          <div className="pt-8 flex gap-4 justify-center flex-wrap">
             <Button
               onClick={() => setShowQR(!showQR)}
               size="lg"
               className="px-8 py-6 text-base font-normal rounded-full hover:scale-105 transition-transform"
             >
               {showQR ? 'Скрыть QR-код' : 'Показать QR-код'}
+            </Button>
+            <Button
+              onClick={() => window.location.href = '/upload'}
+              size="lg"
+              variant="outline"
+              className="px-8 py-6 text-base font-normal rounded-full hover:scale-105 transition-transform"
+            >
+              <Icon name="Upload" size={20} className="mr-2" />
+              Загрузить видео
             </Button>
           </div>
 

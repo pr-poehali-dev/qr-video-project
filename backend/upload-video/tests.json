@@ -1,0 +1,14 @@
+{
+  "tests": [
+    {
+      "name": "GET video URL when no video uploaded",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 404,
+      "expectedBody": {
+        "url": null
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}
